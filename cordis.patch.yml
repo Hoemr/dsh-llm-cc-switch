@@ -1,20 +1,30 @@
 # dsh-llm-cc-switch bundle patch
 #
-# Mounts the CC Switch LLM adapter into the profile. Each harness (Claude
-# Code, Codex, OpenCode, ...) becomes one provider category in the model
-# picker, and every CC Switch account under that harness becomes a model.
-# The adapter re-reads ~/.cc-switch/cc-switch.db on every operation, so a
-# change made in CC Switch reaches DSH without a restart.
+# Mounts the CC Switch LLM adapter into the profile. Each harness with at
+# least one account row becomes one provider category in the picker; every
+# account under that harness becomes a model. The adapter re-reads
+# ~/.cc-switch/cc-switch.db on every operation, so a change in CC Switch
+# reaches DSH without a restart.
 #
-# Overrides (optional, edit the `config` of this row):
-#   dbPath:              absolute path to cc-switch.db (default ~/.cc-switch/cc-switch.db)
-#   appTypes:            cc-switch harnesses to expose (default: claude, claude-desktop, codex, opencode)
-#   contextWindow:       fallback context window of models the account does not size (default 200000)
-#   maxTokens:           per-request output cap (default 64000)
-#   streamIdleTimeoutMs: provider read idle timeout (default 300000)
-#   bearerAuthPrefixes:  API keys starting with these prefixes are sent as
-#                        `Authorization: Bearer` instead of the protocol's
-#                        api-key header (default: tp- for token-plan tokens)
+# Overrides (any of these can be added under `config:`):
+#   source:               id of the registered AccountStore (default "cc-switch")
+#   dbPath:               absolute path to cc-switch.db
+#                         (default ~/.cc-switch/cc-switch.db)
+#   appTypes:             cc-switch harnesses to expose. Default order is
+#                         [claude, claude-desktop, codex, opencode, grokbuild];
+#                         CC Switch also recognises gemini / hermes / openclaw /
+#                         pi but those are disabled until their settings_config
+#                         JSON shape is stable upstream.
+#   contextWindow:        fallback context window of models the account does
+#                         not size (default 200000)
+#   maxTokens:            per-request output cap (default 64000)
+#   streamIdleTimeoutMs:  provider read idle timeout (default 300000)
+#   bearerAuthPrefixes:   API keys starting with these prefixes are sent as
+#                         `Authorization: Bearer` (default: ["tp-"] for
+#                         token-plan tokens)
+#   urlAllowlist:         baseURL guard rails:
+#                         schemes:  ["http:", "https:", "ws:", "wss:"]
+#                         hosts:    []    # empty = accept any host that passes the scheme check
 - insert:
     - id: cc-switch
       name: 'dsh-llm-cc-switch'

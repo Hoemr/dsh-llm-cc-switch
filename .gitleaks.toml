@@ -1,0 +1,42 @@
+# gitleaks config — keep the test fixtures immune from the heuristic
+# generic-api-key rule. Real API keys never appear in this repo's
+# fixtures; `sk-test-...`, `tp-abcd-1234-5678`, and `xai-test` are
+# deliberately placeholder shapes, but gitleaks' regex matches them
+# regardless of the actual content.
+#
+# If you add a new test, prefer fixture keys that DO NOT match a
+# generic-secret regex (e.g. `tk-xxxxxxxxxxxxxxxxxxxxxxxx`, `k-fixture`,
+# `pa<the-rest-of-this-string>`). For every match you do need, add
+# a tighter allowlist rule here so the heuristic stops trying.
+
+title = "dsh-llm-cc-switch gitleaks"
+
+[extend]
+# Use gitleaks' default ruleset as the base.
+useDefault = true
+
+# Stop-the-world allowlist: every regex below is for a placeholder
+# string the test suite uses as a fake credential.
+[[rules]]
+id = "test-fixture-skip"
+description = "Placeholder credentials used only in test fixtures."
+regex = '''(?i)(sk-test|tp-abcd-1234-5678|xai-test|sk-claude-test|sk-codex-test|sk-openai-test)'''
+keywords = ["test", "fixture", "placeholder"]
+
+[allowlist]
+description = "Test fixtures and docs that intentionally mention credential shapes."
+paths = [
+  '''(^|/)test/''',
+  '''(^|/)lib/source/redact\.js$''',     # redaction helpers hold `***redacted***` for documentation
+  '''(^|/)SECURITY\.md$''',
+  '''(^|/)README\.md$''',
+]
+regexes = [
+  '''(?i)sk-test''',
+  '''tp-abcd-1234-5678''',
+  '''xai-test''',
+  '''sk-claude-test''',
+  '''sk-codex-test''',
+  '''sk-openai-test''',
+  '''\*\*\*redacted\*\*\*''',
+]
