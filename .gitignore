@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build / generated
+dist/
+build/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets (defense in depth — never commit real keys)
+.env
+.env.*
+*.env
+secrets/
+*.pem
+*.key
+
+# Local DSH profile scratch
+.DSH/

@@ -1,0 +1,66 @@
+name: Bug report
+description: Something in the plugin does not behave the way the README describes.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. Please don't paste real API keys or your
+        full `cc-switch.db`. A redacted `SELECT id, app_type, name FROM providers`
+        is plenty.
+
+  - type: input
+    id: dsh-version
+    attributes:
+      label: DSH version
+      description: Output of `dsh --version` (or the version shown in Help → About).
+      placeholder: e.g. 0.7.3
+    validations:
+      required: true
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js version
+      description: Output of `node --version` (the plugin needs >=22.19).
+      placeholder: e.g. v22.19.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - macOS
+        - Linux
+    validations:
+      required: true
+
+  - type: input
+    id: harness
+    attributes:
+      label: Affected harness in CC Switch
+      description: e.g. claude / claude-desktop / codex / opencode
+      placeholder: claude
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: What did you do in CC Switch and DSH, and what did you expect to see?
+      placeholder: |
+        1. In CC Switch, add a new account under "Claude Code" pointing at ...
+        2. In DSH, open the model picker ...
+        3. Observed: ...   Expected: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log lines
+      description: Paste only what is relevant; redact any keys.
+      placeholder: |
+        [warn] dsh-llm-cc-switch: ...

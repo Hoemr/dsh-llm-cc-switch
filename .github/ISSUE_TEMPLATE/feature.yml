@@ -1,0 +1,38 @@
+name: Feature request
+description: Propose a new behaviour, an additional harness, or a configuration knob.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is the user-visible problem?
+      description: Describe the situation you are in today, not the implementation.
+      placeholder: |
+        Today, when I add an account in CC Switch under "Gemini CLI", DSH does
+        not pick it up because I have to restart it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: desired
+    attributes:
+      label: Desired behaviour
+      placeholder: |
+        After saving the account in CC Switch, the next model listing in DSH
+        should show the new account under a "Gemini CLI" category, without a
+        restart.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What workarounds do you use today? Why are they not enough?
+
+  - type: input
+    id: harness
+    attributes:
+      label: New harness (if this is one)
+      description: The `app_type` value in CC Switch's `providers` table.
+      placeholder: e.g. gemini
