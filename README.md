@@ -1,5 +1,11 @@
 # dsh-llm-cc-switch
 
+[![GitHub](https://img.shields.io/badge/GitHub-Hoemr%2Fdsh--llm--cc--switch-181717?logo=github&logoColor=white)](https://github.com/Hoemr/dsh-llm-cc-switch)
+[![npm](https://img.shields.io/badge/npm-dsh--llm--cc--switch-CB3837?logo=npm&logoColor=white)](https://www.npmjs.com/package/dsh-llm-cc-switch)
+[![License](https://img.shields.io/github/license/Hoemr/dsh-llm-cc-switch)](https://github.com/Hoemr/dsh-llm-cc-switch/blob/main/LICENSE)
+[![Node ≥ 22.19](https://img.shields.io/badge/node-%E2%89%A5%2022.19-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Maintainer](https://img.shields.io/badge/maintainer-Wei%20Chen-blueviolet)](https://hoemr.github.io/)
+
 DSH (DeepSeek Harness) 的 CC Switch 桥接插件：把 [farion1231/cc-switch](https://github.com/farion1231/cc-switch) 里管理的账号直接变成 DSH 的模型，**每次操作都重新读取 `~/.cc-switch/cc-switch.db`**，与 CC Switch 保持同步，无需重启 DSH。
 
 ## 映射方式
@@ -90,7 +96,7 @@ registerAccountSource("my-source", (config) => new MyStore(config));
 - **不写入数据库**：以 `readOnly: true` 打开 `cc-switch.db`——这个插件从不修改 CC Switch 的状态。
 - **日志脱敏**：`logger.warn` 打印的 row info 走 `redactAccountShape` + `redactUrl`，只出现 `sk-t…abcd` 这种前缀/后缀保留形式；`Authorization` / `x-api-key` / `Bearer …` 在日志头里一律替换为 `***redacted***`。
 - **baseURL 护栏**：见 `urlAllowlist`，每行数据从 store 加载前就被过滤，不在白名单直接跳过。
-- **披露**：`security@hoemr.dev`（见 `SECURITY.md`）。
+- **披露**：`weichen.work@qq.com`（见 `SECURITY.md`）。
 
 ## 开发
 

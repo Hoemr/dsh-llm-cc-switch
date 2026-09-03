@@ -1,7 +1,7 @@
 {
   "name": "dsh-llm-cc-switch",
-  "version": "0.1.0",
-  "description": "DSH LLM adapter plugin: exposes every CC Switch account as a model under its harness category (Claude Code / Codex / OpenCode / Grok Build ...), re-reading the CC Switch database on every operation.",
+  "version": "0.2.0",
+  "description": "DSH LLM adapter plugin: exposes every CC Switch account as a model under its harness category (Claude Code / Codex / OpenCode / Grok Build …), re-reading the CC Switch database on every operation.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -39,5 +39,29 @@
   "engines": {
     "node": ">=22.19.0"
   },
+  "author": {
+    "name": "Wei Chen",
+    "email": "weichen.work@qq.com",
+    "url": "https://hoemr.github.io/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hoemr/dsh-llm-cc-switch.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Hoemr/dsh-llm-cc-switch/issues",
+    "email": "weichen.work@qq.com"
+  },
+  "homepage": "https://github.com/Hoemr/dsh-llm-cc-switch#readme",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "llm",
+    "cc-switch",
+    "claude",
+    "codex",
+    "opencode",
+    "grokbuild"
+  ],
   "license": "MIT"
 }

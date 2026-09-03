@@ -28,10 +28,13 @@ history is forever a leaked key, even after rewrite.
 
 ## Reporting a vulnerability
 
-Please email **`security@hoemr.dev`** (PGP key on request). Don't
+Please email **`weichen.work@qq.com`** (Wei Chen, maintainer). Don't
 open a public GitHub issue for suspected vulnerabilities — you'll get
 a private ack within 72 hours and a fix or mitigation plan before any
 public disclosure.
+
+For non-sensitive bug reports, open a GitHub issue at
+[`Hoemr/dsh-llm-cc-switch/issues`](https://github.com/Hoemr/dsh-llm-cc-switch/issues).
 
 For non-sensitive bugs, please open a regular issue.
 

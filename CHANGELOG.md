@@ -6,6 +6,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-09-03
+
 ### Added
 - **`grokbuild` harness parser.** Reads the `models.default` +
   `[model.<profile>]` TOML CC Switch writes for Grok Build, including
@@ -41,6 +43,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Lazy `node:sqlite` loader.** A `loadDatabaseSync` factory hides
   the `node:sqlite` built-in behind a dynamic import so vite-node's
   pre-bundle pass does not blow up on the static spec.
+- **`gitleaks` allowlist.** `.gitleaks.toml` whitelists placeholder
+  credentials in `test/` fixtures and the `***redacted***` token used
+  by redaction helpers / docs.
+- **Maintainer metadata.** `package.json` author / repository / bugs /
+  homepage / keywords wired up; `README.md` gains GitHub / npm / Node
+  / License / Maintainer badges.
 
 ### Changed
 - **Peer-range widening.** `@deepseek-ai/dsh-llm` and
@@ -53,6 +61,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   sqlite loader is lazy, so the first call awaits an import; the
   adapter pre-warms its profile cache at construction so pi-ai's
   sync `profiles()` callback always sees the latest snapshot.
+- **`apply()` is now async.** Cordis tolerates async apply
+  functions, but the call site that resolves `adapter.store` had to
+  gain a getter so the closure can introspect `lastError` /
+  `sourceLocation` without changing visibility.
 - **`lib/source.js` is now a shim.** Real code lives under
   `lib/source/`; the shim keeps the historical `./source` export so
   `lib/index.js` (and any pin to the old path) keeps working.

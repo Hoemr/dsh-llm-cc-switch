@@ -90,7 +90,7 @@ The two suites cover disjoint ground:
   upstream CC Switch schema before adding a parser. Unsupported today:
   `gemini`, `hermes`, `openclaw`, `pi`. The `settings_config` JSON
   shape for these is not yet stable upstream.
-- **Security / disclosure** — `security@hoemr.dev` (see
+- **Security / disclosure** — `weichen.work@qq.com` (see
   `SECURITY.md`). Don't open a public issue.
 
 ## Pull requests
