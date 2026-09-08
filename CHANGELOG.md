@@ -6,6 +6,23 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.1] — 2026-09-08
+
+### Fixed
+- **Boot failure against DeepSeek Harness `0.1.2-rc.1` / DSH Desktop 2.0.5.**
+  The `urlAllowlist` schema used `z.array(z.string()).optional()`, which the
+  current `@deepseek-ai/schemastery` (3.18.x) does not implement — the plugin
+  threw `TypeError: z.array(...).optional is not a function` at import time,
+  so the loader entry `cc-switch` failed and took the whole plugin tree down
+  with it. Both fields now use `.default(undefined)`, which clears the `[]`
+  default `z.array()` injects and therefore keeps the documented "omitted =
+  use the built-in scheme set / any host" behavior instead of turning an
+  omitted field into a closed allowlist that rejects every baseURL.
+- Peer ranges now name the harness line this build is verified against
+  (`@deepseek-ai/dsh-llm`, `@deepseek-ai/dsh-llm-pi-ai`: `>=0.1.2-rc.1
+  <0.2.0-0`). The adapter reaches into `PiAiAdapter`'s profile shape, so the
+  old open-ended ranges over-claimed compatibility.
+
 ## [0.2.0] — 2026-09-03
 
 ### Added

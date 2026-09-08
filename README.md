@@ -62,7 +62,7 @@ dsh plugin --profile <name> install
         streamIdleTimeoutMs: 300000
         bearerAuthPrefixes: [tp-]         # 这些前缀开头的密钥走 Authorization: Bearer
         urlAllowlist:                     # baseURL 护栏——下面的任一项都可在 config 里覆盖
-          schemes: [http, https, ws, wss] # Scheme allowlist；其他 scheme 全部拒绝
+          schemes: ["http:", "https:", "ws:", "wss:"]  # Scheme allowlist（注意结尾冒号，与 URL.protocol 一致）；其他 scheme 全部拒绝
           # hosts: [api.openai.com, anthropic.com]   # 仅允许这些 host 后缀（可选）
 ```
 
