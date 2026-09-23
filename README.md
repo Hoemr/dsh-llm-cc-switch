@@ -64,9 +64,17 @@ dsh plugin --profile <name> install
         urlAllowlist:                     # baseURL 护栏——下面的任一项都可在 config 里覆盖
           schemes: ["http:", "https:", "ws:", "wss:"]  # Scheme allowlist（注意结尾冒号，与 URL.protocol 一致）；其他 scheme 全部拒绝
           # hosts: [api.openai.com, anthropic.com]   # 仅允许这些 host 后缀（可选）
+        opencodeSession:                  # OpenCode Go / Zen 的按会话 session 头
+          enabled: true                   # false = 完全不发（退回旧行为）
+          header: x-opencode-session      # OpenCode 也认 session_id / x-session-id
+          # hosts: [opencode.ai]          # 默认 opencode.ai 及其子域
 ```
 
 `urlAllowlist.schemes`/`hosts` 是闭集 allowlist，**不是配置 = 拒绝**。这给了"你从 CC Switch 数据库加载，但实际不允许模型路由到某 host"的能力。
+
+### OpenCode Go / Zen 的 session 头
+
+自 2026-09-06 起 `opencode.ai` 会拒绝没有稳定会话 id 的请求（`400 MissingSessionID`），且只认 `x-opencode-session` / `session_id` / `x-session-id` 这三个名字——pi-ai 自带的 session-affinity 在 Anthropic 协议上发的是 `x-session-affinity`，OpenCode 不认；DSH 目前在 pi-ai 适配器路径上也不发任何会话头（上游见 [discussion #5495](https://github.com/deepseek-ai/deepseek-harness/discussions/5495)）。所以凡 `baseURL` host 命中 `opencodeSession.hosts` 的账号，本插件都会补上这个头：值取 DSH 的会话 id（每个会话稳定，OpenCode 才能据此做路由与提示词缓存），调用方没带会话 id 时（模型探测、手工单次调用）用本进程内稳定的兜底值——同样不会再 400。`enabled: false` 可以整体关掉。
 
 ## API
 

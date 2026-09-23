@@ -1,6 +1,6 @@
 {
   "name": "dsh-llm-cc-switch",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "DSH LLM adapter plugin: exposes every CC Switch account as a model under its harness category (Claude Code / Codex / OpenCode / Grok Build …), re-reading the CC Switch database on every operation.",
   "type": "module",
   "main": "lib/index.js",

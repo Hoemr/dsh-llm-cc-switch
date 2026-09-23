@@ -25,6 +25,13 @@
 #   urlAllowlist:         baseURL guard rails:
 #                         schemes:  ["http:", "https:", "ws:", "wss:"]
 #                         hosts:    []    # empty = accept any host that passes the scheme check
+#   opencodeSession:      per-conversation session header for OpenCode Go / Zen,
+#                         which rejects requests without one (400 MissingSessionID):
+#                         enabled: true                    # false = send nothing
+#                         header:  x-opencode-session      # or session_id / x-session-id
+#                         hosts:   [opencode.ai]           # host suffixes (default opencode.ai)
+#                         The value is the DSH session id, or a stable per-adapter
+#                         fallback when a call arrives without one.
 - insert:
     - id: cc-switch
       name: 'dsh-llm-cc-switch'

@@ -6,6 +6,37 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-09-23
+
+### Added
+- **OpenCode Go / Zen session headers.** Since 2026-09-06 `opencode.ai`
+  rejects requests that carry no stable per-conversation session id
+  (`400 MissingSessionID`), and it accepts that id only under
+  `x-opencode-session`, `session_id`, or `x-session-id`. The pi-ai seam's own
+  session-affinity feature emits `x-session-affinity` on the Anthropic
+  transport (which OpenCode does not accept), and DSH sends no session header
+  at all on the pi-ai adapter path (upstream: [deepseek-harness discussion
+  #5495](https://github.com/deepseek-ai/deepseek-harness/discussions/5495)), so
+  every OpenCode Go account bridged by this plugin failed on its first request
+  while still listing models normally.
+  Accounts whose `baseURL` host matches `opencodeSession.hosts` (default
+  `["opencode.ai"]`, subdomains included) now carry
+  `opencodeSession.header` (default `x-opencode-session`), valued with the DSH
+  session id when the harness supplies one and a stable per-adapter id
+  otherwise; `opencodeSession.enabled: false` restores the previous behaviour.
+  Measured against `https://opencode.ai/zen/go/v1/messages`: with the header
+  `200`, without it `400`.
+- `test/adapter/opencode-session.vitest.test.js` captures the outgoing request
+  by stubbing `globalThis.fetch`, so it covers the header surviving the pi-ai
+  profile/options merge, the fallback id, and the disabled/custom-host cases.
+
+### Changed
+- `prepareCall()` no longer reuses `PiAiAdapter`'s frozen profile snapshot: the
+  session id the OpenCode header needs only arrives with
+  `GenerateOptions.sessionId` at dispatch time. The snapshot is now taken per
+  dispatch, which is consistent with this adapter reading live state everywhere
+  else. Model metadata is still resolved once, at prepare time.
+
 ## [0.2.2] — 2026-09-23
 
 ### Fixed
