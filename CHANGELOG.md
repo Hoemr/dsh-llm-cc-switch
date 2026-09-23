@@ -6,6 +6,33 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.2] — 2026-09-23
+
+### Fixed
+- **Every request failed against DeepSeek Harness `0.1.5-rc.3`.** The profile
+  this adapter synthesizes for `PiAiAdapter` omitted `modelErrors`, which the
+  0.1.5 seam reads unconditionally in `modelOf()` before it consults the model
+  collection. Listing a category still looked healthy (`listModels()` never
+  touches that field), but the first `resolveModel()` / `prepareCall()` /
+  `stream()` on any account threw
+  `TypeError: Cannot read properties of undefined (reading 'get')` — so the
+  routes registered and then failed on use. Profiles now carry an empty
+  `ReadonlyMap`, the correct value for an account that resolved cleanly.
+- **Resolved picker labels lost their context/protocol tail.**
+  `LlmResolvedModelInfo.context` is `{ contextWindow }` rather than a bare
+  number, so passing it straight to `formatContext()` yielded `undefined` and
+  `resolveModel()` returned `<account> · <model>` where `listModels()` returned
+  `<account> · <model>  [200k · anthropic]`. The adapter now reads
+  `info.context?.contextWindow`.
+- **Profiles now declare a resolved `retryPolicy`.** `ResolvedPiAiProviderProfile`
+  types that field as a materialized policy, not an optional config block, so
+  the adapter passes `resolveRetryPolicy(undefined, …)`. Behaviour is unchanged:
+  `providerRetryPolicy()` still answers `undefined`, i.e. the seam's normal
+  five-retry default.
+- Peer ranges now name the harness line this build is verified against
+  (`@deepseek-ai/dsh-llm`, `@deepseek-ai/dsh-llm-pi-ai`: `>=0.1.5-rc.3
+  <0.2.0-0`; `@earendil-works/pi-ai`: `^0.85.1`).
+
 ## [0.2.1] — 2026-09-08
 
 ### Fixed
