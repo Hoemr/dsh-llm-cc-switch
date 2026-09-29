@@ -37,6 +37,15 @@ DSH (DeepSeek Harness) 的 CC Switch 桥接插件：把 [farion1231/cc-switch](h
 - DSH Desktop（内置 `@deepseek-ai/dsh-llm-pi-ai` 与 `@earendil-works/pi-ai`）
 - Node ≥ 22.19（与 DSH 自身一致）
 
+## 兼容性
+
+| 本插件 | 已验证的 DSH | 已验证的 `@earendil-works/pi-ai` |
+|---|---|---|
+| 0.3.1 | `@deepseek-ai/dsh-llm` / `dsh-llm-pi-ai` `0.2.0-rc.2`（DSH Desktop 0.2.0-rc.2，Node 24.18.1 / Electron 44） | `0.87.1` |
+| 0.3.0 | `0.1.5-rc.3` | `0.85.1` |
+
+`@deepseek-ai/dsh-llm` / `dsh-llm-pi-ai` 的 peer range 是 `>=0.1.5-rc.3 <0.3.0-0`，`@earendil-works/pi-ai` 是 `>=0.85.1 <0.88.0-0`。适配器直接依赖 `PiAiAdapter` 合成的 profile 形状，所以 peer range 只覆盖实际验证过的版本线；DSH 升级后如果 profile 形状再变，`test/adapter/profile-shape.vitest.test.js` 会先失败而不是在选择器里失败。
+
 ## 安装
 
 在目标 profile 的 `package.json` 中加入本地依赖并把它追加到 `dsh.profile.bundles`，然后：
@@ -109,11 +118,14 @@ registerAccountSource("my-source", (config) => new MyStore(config));
 ## 开发
 
 ```sh
-npm test                 # vitest run：parser / allowlist / redact / 注册表
+npm install              # 会装上 devDependencies 里的 harness 包，adapter 测试才能跑
+npm test                 # vitest run：parser / allowlist / redact / 注册表 / adapter seam
 npm run test:integration # node --experimental-sqlite，跑真实 SQLite fixture
 npm run test:all         # 两套都跑
 npm run test:watch       # vitest --watch
 ```
+
+`devDependencies` 固定了本插件验证过的 `@deepseek-ai/dsh-llm` / `dsh-llm-pi-ai` / `@earendil-works/pi-ai` 版本，`test/adapter/` 下的两个 seam 测试直接 import 它们；只装 vitest 的话这两个文件会因为解析不到 peer 而整文件失败（其余 8 个文件仍然通过）。
 
 `test:integration` 走的是 `node --test` 而不是 vitest——vite-node 的 pre-bundle 在 Windows 上不能解析 `node:sqlite` 内建，所以单独拆开；两套测试都通过才算过 CI。
 

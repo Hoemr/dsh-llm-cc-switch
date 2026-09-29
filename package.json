@@ -1,6 +1,6 @@
 {
   "name": "dsh-llm-cc-switch",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "DSH LLM adapter plugin: exposes every CC Switch account as a model under its harness category (Claude Code / Codex / OpenCode / Grok Build …), re-reading the CC Switch database on every operation.",
   "type": "module",
   "main": "lib/index.js",
@@ -28,13 +28,17 @@
     "test:all": "npm run test && npm run test:integration"
   },
   "devDependencies": {
+    "@deepseek-ai/dsh-llm": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-llm-pi-ai": "0.2.0-rc.2",
+    "@deepseek-ai/schemastery": "3.18.4",
+    "@earendil-works/pi-ai": "0.87.1",
     "vitest": "^2.1.0"
   },
   "peerDependencies": {
-    "@deepseek-ai/dsh-llm": ">=0.1.5-rc.3 <0.2.0-0",
-    "@deepseek-ai/dsh-llm-pi-ai": ">=0.1.5-rc.3 <0.2.0-0",
+    "@deepseek-ai/dsh-llm": ">=0.1.5-rc.3 <0.3.0-0",
+    "@deepseek-ai/dsh-llm-pi-ai": ">=0.1.5-rc.3 <0.3.0-0",
     "@deepseek-ai/schemastery": "^3.18.0",
-    "@earendil-works/pi-ai": "^0.85.1"
+    "@earendil-works/pi-ai": ">=0.85.1 <0.88.0-0"
   },
   "engines": {
     "node": ">=22.19.0"

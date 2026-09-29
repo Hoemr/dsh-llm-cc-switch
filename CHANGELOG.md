@@ -6,6 +6,40 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.1] — 2026-09-30
+
+### Changed
+- **Verified against DeepSeek Harness 0.2.0-rc.2 / DSH Desktop 0.2.0-rc.2.** The
+  0.2.0 line ships `@deepseek-ai/dsh-llm` 0.2.0-rc.2 and
+  `@deepseek-ai/dsh-llm-pi-ai` 0.2.0-rc.2 with `@earendil-works/pi-ai` 0.87.1;
+  the adapter seam (`LlmAdapter` `providerInfo` / `listModels` / `resolveModel` /
+  `prepareCall` / `stream`), the `ResolvedPiAiProviderProfile` shape
+  (`modelErrors`, `configuredMaxTokens`, `retryPolicy`, `piProvider`,
+  `headers`), and the `PiAiAdapter` constructor config (`profiles`,
+  `resolveApiKey`, `auth`, `resolveAttachments`, `onReplayDegrade`) are
+  unchanged between `0.1.5-rc.3` and `0.2.0-rc.2`, so no adapter code change was
+  needed — the peer ranges now name the wider verified line
+  (`@deepseek-ai/dsh-llm`, `@deepseek-ai/dsh-llm-pi-ai`: `>=0.1.5-rc.3
+  <0.3.0-0`; `@earendil-works/pi-ai`: `>=0.85.1 <0.88.0-0`).
+  The previous `^0.85.1` pi-ai range did not admit the 0.87.1 build that
+  0.2.0-rc.2 installs, and `<0.2.0-0` on the harness packages excluded the whole
+  0.2.0 line — which the 0.2.0 boot loader's plugin compatibility gate
+  (`evaluatePluginCompatibility`, every `@deepseek-ai/dsh*` peer checked against
+  the running runtime with prereleases included) reads as "profile startup
+  denies it", not as a warning only.
+- The harness packages are now devDependencies so the adapter seam tests
+  (`test/adapter/`) run from a plain `npm install` instead of requiring an
+  installed DSH to resolve the peers.
+
+### Verified
+- 68 vitest + 7 `node:test` integration cases pass against the real
+  0.2.0-rc.2 packages.
+- `CcSwitchAdapter` mounted on the real `LlmRuntime` reports the three routes
+  and 19 models of a live `cc-switch.db`, and live `stream()` calls on
+  `cc-switch/codex` (`openai-responses`) and `cc-switch/claude`
+  (`anthropic-messages`, OpenCode Go host → `x-opencode-session`) both returned
+  a completion.
+
 ## [0.3.0] — 2026-09-23
 
 ### Added
