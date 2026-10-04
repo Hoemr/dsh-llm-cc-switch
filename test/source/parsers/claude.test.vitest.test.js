@@ -33,7 +33,7 @@ describe("parsers/claude", () => {
     expect(out?.models).toEqual([{ id: "y", name: "y" }]);
   });
 
-  it("strips the [1M] suffix from the wire id but keeps it as part of the human-readable lookup", () => {
+  it("strips the [1M] suffix from the wire id, keeps it as part of the human-readable lookup, and reports it as the context window", () => {
     const out = parseClaude({
       env: {
         ANTHROPIC_AUTH_TOKEN: "x",
@@ -41,7 +41,62 @@ describe("parsers/claude", () => {
         ANTHROPIC_DEFAULT_SONNET_MODEL_NAME: "Sonnet (1M)",
       },
     });
-    expect(out?.models[0]).toEqual({ id: "claude-sonnet-4", name: "Sonnet (1M)" });
+    expect(out?.models[0]).toEqual({
+      id: "claude-sonnet-4",
+      name: "Sonnet (1M)",
+      contextWindow: 1_000_000,
+    });
+  });
+
+  it("reads every unit form a context suffix may use", () => {
+    const out = parseClaude({
+      env: {
+        ANTHROPIC_AUTH_TOKEN: "x",
+        ANTHROPIC_DEFAULT_OPUS_MODEL: "big[1M]",
+        ANTHROPIC_DEFAULT_SONNET_MODEL: "mid[200k]",
+        ANTHROPIC_DEFAULT_HAIKU_MODEL: "raw[1000000]",
+        ANTHROPIC_DEFAULT_FABLE_MODEL: "small[64 K]",
+      },
+    });
+    expect(out?.models.map((m) => [m.id, m.contextWindow])).toEqual([
+      ["big", 1_000_000],
+      ["mid", 200_000],
+      ["raw", 1_000_000],
+      ["small", 64_000],
+    ]);
+  });
+
+  it("leaves the window unset for a suffix that names no size", () => {
+    const out = parseClaude({
+      env: {
+        ANTHROPIC_AUTH_TOKEN: "x",
+        ANTHROPIC_DEFAULT_OPUS_MODEL: "claude-opus-4[preview]",
+      },
+    });
+    expect(out?.models[0]).toEqual({ id: "claude-opus-4", name: "claude-opus-4" });
+  });
+
+  it("scopes the window to the key that declared it", () => {
+    const out = parseClaude({
+      env: {
+        ANTHROPIC_AUTH_TOKEN: "x",
+        ANTHROPIC_DEFAULT_HAIKU_MODEL: "deepseek-v4-flash",
+        ANTHROPIC_DEFAULT_SONNET_MODEL: "deepseek-v4.1-flash[1M]",
+      },
+    });
+    expect(out?.models.find((m) => m.id === "deepseek-v4-flash")?.contextWindow).toBeUndefined();
+    expect(out?.models.find((m) => m.id === "deepseek-v4.1-flash")?.contextWindow).toBe(1_000_000);
+  });
+
+  it("keeps the first declaration of a duplicated id", () => {
+    const out = parseClaude({
+      env: {
+        ANTHROPIC_AUTH_TOKEN: "x",
+        ANTHROPIC_DEFAULT_OPUS_MODEL: "shared",
+        ANTHROPIC_DEFAULT_SONNET_MODEL: "shared[1M]",
+      },
+    });
+    expect(out?.models).toEqual([{ id: "shared", name: "shared" }]);
   });
 
   it("returns undefined when no apiKey is present", () => {

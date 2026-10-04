@@ -6,6 +6,28 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+- **1M context windows are no longer reported as 200k.** CC Switch advertises
+  the long-context variant of a Claude-harness model in the model id itself
+  (`deepseek-v4.1-flash[1M]`). The claude parser stripped that suffix —
+  correctly, since Claude Code never sends it on the wire — but discarded the
+  advertised window with it, so every such model silently fell back to the
+  profile-wide `contextWindow` default (200000) and the picker showed
+  `[195k · anthropic]` for a 1M model. The suffix is now read as a token window
+  (`[1M]`/`[200k]`/`[1000000]`, decimal units; an unrecognised suffix such as
+  `[preview]` still falls back) and carried through to the picker label and the
+  model's `contextWindow`. Only the claude parser is affected — codex and
+  grokbuild rows already carry an explicit `contextWindow`/`context_window`.
+- **Context labels are decimal, not binary.** The picker label divided token
+  counts by 1024, rendering a 1,000,000-token model as `977k` and a
+  200,000-token model as `195k`. `formatContext` now divides by 1000/1,000,000,
+  so a 1M window reads `1M` and a 200k window reads `200k`, matching the
+  `[1M]`/`[200k]` alias stored by CC Switch (and the README's own example).
+  Verified against the packages DSH Desktop 0.2.0-rc.2 ships: the claude
+  category now lists `deepseek-v4.1-flash [1M · anthropic]` and
+  `DeepSeek V4 Flash [1M · openai-responses]`, with live requests returning a
+  completion.
+
 ## [0.3.1] — 2026-09-30
 
 ### Changed

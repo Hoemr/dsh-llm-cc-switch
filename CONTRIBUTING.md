@@ -133,3 +133,11 @@ The two suites cover disjoint ground:
 - Versions follow semver.
 - Tags are `vX.Y.Z`. The release body is the matching `CHANGELOG.md`
   section under the bumped version header.
+- **Re-check the `@deepseek-ai/dsh*` peer ranges whenever the harness ships a
+  new minor.** `dsh-app-boot` validates every profile bundle with
+  `evaluatePluginCompatibility()`, comparing the *running harness version*
+  against each `@deepseek-ai/dsh*` range in this manifest, and it throws on a
+  mismatch — so an upper bound like `<0.2.0-0` silently removes the plugin from
+  the profile the day DSH moves to `0.2.0`. Widen the bound in the same change
+  that verifies the new runtime, and record which runtime versions were
+  actually exercised in `CHANGELOG.md`.

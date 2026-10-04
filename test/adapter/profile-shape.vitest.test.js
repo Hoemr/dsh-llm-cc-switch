@@ -42,14 +42,34 @@ registerAccountSource("fixture-one", () => ({
   routes: async () => ["cc-switch/claude"],
 }));
 
+const MILLION_ACCOUNT = {
+  accountId: "acct-1m",
+  appType: "claude",
+  name: "Long Context Co",
+  protocol: "anthropic-messages",
+  baseURL: "https://api.example.test",
+  apiKey: "sk-fixture-not-a-real-key",
+  bearer: false,
+  models: [{ id: "long-model", name: "Long Model", contextWindow: 1_000_000 }],
+  current: true,
+};
+
+/** A second source holding only the 1M-window account, for the label path. */
+registerAccountSource("fixture-million", () => ({
+  stamp: "fixture-stamp-1m",
+  lastError: undefined,
+  sourceLocation: "<fixture-1m>",
+  accounts: async () => [MILLION_ACCOUNT],
+  accountsOf: async (appType) => (appType === "claude" ? [MILLION_ACCOUNT] : []),
+  account: async (accountId) => (accountId === MILLION_ACCOUNT.accountId ? MILLION_ACCOUNT : undefined),
+  routes: async () => ["cc-switch/claude"],
+}));
+
 const silentLogger = { info() {}, warn() {}, error() {}, debug() {} };
 
 /** Construct an adapter and let its async profile cache warm once. */
-async function fixtureAdapter() {
-  const adapter = new CcSwitchAdapter(
-    Config({ source: "fixture-one", appTypes: ["claude"] }),
-    silentLogger,
-  );
+async function fixtureAdapter(source = "fixture-one") {
+  const adapter = new CcSwitchAdapter(Config({ source, appTypes: ["claude"] }), silentLogger);
   // The constructor pre-warms the cache asynchronously; the sync `profiles()`
   // hook the pi-ai seam calls only sees a populated map after that settles.
   await new Promise((resolve) => setTimeout(resolve, 0));
@@ -63,7 +83,7 @@ describe("adapter/profile shape", () => {
     expect(models.map((model) => model.id)).toEqual([
       encodeModelId(ACCOUNT.accountId, "claude-fixture"),
     ]);
-    expect(models[0].name).toContain("[195k · anthropic]");
+    expect(models[0].name).toContain("[200k · anthropic]");
   });
 
   it("resolves a model without the profile missing seam-required fields", async () => {
@@ -73,9 +93,21 @@ describe("adapter/profile shape", () => {
       encodeModelId(ACCOUNT.accountId, "claude-fixture"),
     );
     expect(info.provider).toBe("cc-switch/claude");
-    expect(info.name).toBe("Fixture Co · Claude Fixture  [195k · anthropic]");
+    expect(info.name).toBe("Fixture Co · Claude Fixture  [200k · anthropic]");
     // `LlmResolvedModelInfo.context` is an object, not a bare number.
     expect(info.context).toEqual({ contextWindow: 200000 });
+  });
+
+  it("labels a 1M-window model as 1M, not 977k", async () => {
+    const adapter = await fixtureAdapter("fixture-million");
+    const models = await adapter.listModels("cc-switch/claude");
+    expect(models[0].name).toContain("[1M · anthropic]");
+    const info = await adapter.resolveModel(
+      "cc-switch/claude",
+      encodeModelId(MILLION_ACCOUNT.accountId, "long-model"),
+    );
+    expect(info.name).toBe("Long Context Co · Long Model  [1M · anthropic]");
+    expect(info.context).toEqual({ contextWindow: 1_000_000 });
   });
 
   it("prepares a call with bound model metadata and a stream entry point", async () => {
