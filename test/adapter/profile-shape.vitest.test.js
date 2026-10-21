@@ -65,6 +65,50 @@ registerAccountSource("fixture-million", () => ({
   routes: async () => ["cc-switch/claude"],
 }));
 
+// CC Switch mirrors the same provider row id under `claude` and
+// `claude-desktop` (same UUID, separate settings_config rows). A store keyed by
+// the bare id hands back whichever row sorts first, so the adapter has to
+// resolve by (appType, accountId) — otherwise every model in the mirrored
+// category fails with `model "…" is not an account of "cc-switch/<appType>"`.
+const MIRRORED_CLAUDE = {
+  accountId: "acct-mirrored",
+  appType: "claude",
+  accountKey: "claude:acct-mirrored",
+  name: "Mirrored (CLI)",
+  protocol: "anthropic-messages",
+  baseURL: "https://cli.example.test",
+  apiKey: "sk-cli-fixture-not-a-real-key",
+  bearer: false,
+  models: [{ id: "mirror-model", name: "Mirror Model", contextWindow: 200000 }],
+  current: true,
+};
+const MIRRORED_DESKTOP = {
+  ...MIRRORED_CLAUDE,
+  appType: "claude-desktop",
+  accountKey: "claude-desktop:acct-mirrored",
+  name: "Mirrored (Desktop)",
+  baseURL: "https://desktop.example.test",
+  apiKey: "sk-desktop-fixture-not-a-real-key",
+  current: false,
+};
+
+/** Mirrored-id store: `account(id)` is deliberately ambiguous (the bug),
+ *  `accountOf(appType, id)` is the disambiguating lookup the adapter must use. */
+registerAccountSource("fixture-mirrored", () => ({
+  stamp: "fixture-stamp-mirrored",
+  lastError: undefined,
+  sourceLocation: "<fixture-mirrored>",
+  accounts: async () => [MIRRORED_CLAUDE, MIRRORED_DESKTOP],
+  accountsOf: async (appType) => (
+    appType === "claude" ? [MIRRORED_CLAUDE] : appType === "claude-desktop" ? [MIRRORED_DESKTOP] : []
+  ),
+  account: async (accountId) => (accountId === MIRRORED_CLAUDE.accountId ? MIRRORED_CLAUDE : undefined),
+  accountOf: async (appType, accountId) => [MIRRORED_CLAUDE, MIRRORED_DESKTOP].find(
+    (account) => account.appType === appType && account.accountId === accountId,
+  ),
+  routes: async () => ["cc-switch/claude", "cc-switch/claude-desktop"],
+}));
+
 const silentLogger = { info() {}, warn() {}, error() {}, debug() {} };
 
 /** Construct an adapter and let its async profile cache warm once. */
@@ -141,5 +185,29 @@ describe("adapter/profile shape", () => {
     await expect(
       adapter.resolveModel("cc-switch/claude", "not-an-encoded-model-id"),
     ).rejects.toThrow(/has no model/);
+  });
+});
+
+describe("adapter/mirrored account ids", () => {
+  it("resolves each app_type to its own account when the row ids collide", async () => {
+    const adapter = await fixtureAdapter("fixture-mirrored");
+    const modelId = encodeModelId(MIRRORED_CLAUDE.accountId, "mirror-model");
+    // Before the (appType, id) lookup this second call threw
+    // `model "acct-mirrored::mirror-model" is not an account of
+    // "cc-switch/claude-desktop"` — the exact warning the picker showed.
+    const cli = await adapter.resolveModel("cc-switch/claude", modelId);
+    const desktop = await adapter.resolveModel("cc-switch/claude-desktop", modelId);
+    expect(cli.name).toBe("Mirrored (CLI) · Mirror Model  [200k · anthropic]");
+    expect(desktop.name).toBe("Mirrored (Desktop) · Mirror Model  [200k · anthropic]");
+  });
+
+  it("prepares a call for the mirrored category too", async () => {
+    const adapter = await fixtureAdapter("fixture-mirrored");
+    const prepared = await adapter.prepareCall(
+      "cc-switch/claude-desktop",
+      encodeModelId(MIRRORED_DESKTOP.accountId, "mirror-model"),
+    );
+    expect(prepared.model.name).toBe("Mirrored (Desktop) · Mirror Model  [200k · anthropic]");
+    expect(typeof prepared.stream).toBe("function");
   });
 });

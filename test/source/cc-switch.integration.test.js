@@ -24,15 +24,21 @@ function buildFixtureDb() {
   const dbPath = join(dir, "cc-switch.db");
   const db = new DatabaseSync(dbPath);
   try {
+    // Matches the real cc-switch.db schema: identity is (id, app_type), NOT the
+    // id alone. CC Switch mirrors one provider row under `claude` and
+    // `claude-desktop`, so a single-column PRIMARY KEY would hide that — an
+    // earlier fixture did exactly that, and the mirrored-id bug reached a
+    // release: every model under the second category failed to resolve.
     db.exec(`
       CREATE TABLE providers (
-        id TEXT PRIMARY KEY,
+        id TEXT NOT NULL,
         app_type TEXT NOT NULL,
         name TEXT NOT NULL,
         category TEXT,
         settings_config TEXT NOT NULL,
         sort_index INTEGER,
-        is_current INTEGER NOT NULL DEFAULT 0
+        is_current INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (id, app_type)
       );
     `);
     const insert = db.prepare(`
@@ -47,6 +53,17 @@ function buildFixtureDb() {
           ANTHROPIC_DEFAULT_SONNET_MODEL: "claude-sonnet-4",
         },
       }), 1);
+    // Same row id as the claude entry, separate app_type row: this is how CC
+    // Switch mirrors a provider into the Claude Code (Desktop) harness. The
+    // settings differ so a lookup mix-up is observable.
+    insert.run("acc-claude-1", "claude-desktop", "Anthropic Desktop",
+      JSON.stringify({
+        env: {
+          ANTHROPIC_AUTH_TOKEN: "sk-claude-desktop-test",
+          ANTHROPIC_BASE_URL: "https://api.anthropic.com",
+          ANTHROPIC_DEFAULT_SONNET_MODEL: "claude-sonnet-4",
+        },
+      }), 0);
     insert.run("acc-codex-1", "codex", "OpenAI",
       JSON.stringify({
         auth: { OPENAI_API_KEY: "sk-codex-test" },
@@ -99,9 +116,29 @@ test("CcSwitchStore parses providers rows", async () => {
   const fixture = buildFixtureDb();
   const store = new CcSwitchStore({ dbPath: fixture.dbPath });
   const accounts = await store.accounts();
-  assert.deepEqual(accounts.map((a) => a.appType).sort(), ["claude", "claude", "codex", "grokbuild", "opencode"]);
+  assert.deepEqual(
+    accounts.map((a) => a.appType).sort(),
+    ["claude", "claude", "claude-desktop", "codex", "grokbuild", "opencode"],
+  );
   assert.ok(accounts.find((a) => a.appType === "claude" && a.name === "Anthropic"));
   assert.equal(accounts.find((a) => a.appType === "codex")?.models[0].id, "gpt-5");
+});
+
+test("CcSwitchStore keys mirrored row ids by (app_type, id)", async () => {
+  const fixture = buildFixtureDb();
+  const store = new CcSwitchStore({ dbPath: fixture.dbPath });
+  const cli = await store.accountOf("claude", "acc-claude-1");
+  const desktop = await store.accountOf("claude-desktop", "acc-claude-1");
+  assert.equal(cli?.name, "Anthropic");
+  assert.equal(desktop?.name, "Anthropic Desktop");
+  assert.equal(cli?.apiKey, "sk-claude-test");
+  assert.equal(desktop?.apiKey, "sk-claude-desktop-test");
+  assert.equal(cli?.accountKey, "claude:acc-claude-1");
+  assert.equal(desktop?.accountKey, "claude-desktop:acc-claude-1");
+  // Bare-id lookup stays available, but is first-match and therefore unusable
+  // for addressing one of the mirrored rows — `accountOf` is the identity.
+  assert.equal((await store.account("acc-claude-1"))?.appType, "claude");
+  assert.equal(await store.accountOf("codex", "acc-claude-1"), undefined);
 });
 
 test("CcSwitchStore returns routes in enabled appTypes order", async () => {
@@ -109,6 +146,7 @@ test("CcSwitchStore returns routes in enabled appTypes order", async () => {
   const store = new CcSwitchStore({ dbPath: fixture.dbPath });
   assert.deepEqual(await store.routes(), [
     "cc-switch/claude",
+    "cc-switch/claude-desktop",
     "cc-switch/codex",
     "cc-switch/opencode",
     "cc-switch/grokbuild",

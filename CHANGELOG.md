@@ -6,7 +6,29 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.2] — 2026-10-21
+
 ### Fixed
+- **"Claude Code (Desktop)" and any other mirrored category no longer fail to
+  load.** CC Switch gives the same provider row id to more than one app_type —
+  a provider mirrored into the Claude Code Desktop harness is stored as a
+  second row with the *same* UUID under `claude-desktop`. The store used that
+  bare id as its account identity, so `account(id)` returned whichever row
+  sorted first (`claude`) and the adapter rejected every model of the other
+  category with `dsh-llm-cc-switch: model "<uuid>::<model>" is not an account
+  of "cc-switch/claude-desktop"` — shown in the picker as
+  `Claude Code (Desktop) 加载失败`. The same collision also made the two
+  mirrored rows share one pi-ai profile, so requests could leave with the other
+  row's key/baseURL.
+  Identity is now the pair `(appType, accountId)` — carried as an `accountKey`
+  on every account and as the internal `cc-switch-account/<appType>:<accountId>`
+  route; `AccountStore` gained `accountOf(appType, accountId)` and the adapter
+  resolves models and API keys through it. Picker-facing model ids are
+  unchanged (`<account-uuid>::<wire model id>`), so existing sessions and
+  saved default-model selections keep resolving.
+  The integration fixture now mirrors the real `providers` schema
+  (`PRIMARY KEY (id, app_type)`); it used a single-column primary key, which is
+  why this never failed in CI.
 - **1M context windows are no longer reported as 200k.** CC Switch advertises
   the long-context variant of a Claude-harness model in the model id itself
   (`deepseek-v4.1-flash[1M]`). The claude parser stripped that suffix —

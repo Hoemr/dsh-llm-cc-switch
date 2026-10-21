@@ -95,8 +95,16 @@ await store.accounts();          // 解析后的账号列表，按 (appType, cur
 store.stamp;                     // mtime:size；为空表示还没读过
 store.lastError;                 // 最近一次读库的 error
 await store.routes();            // 当前能挂的 harness 路由
-await store.account("<uuid>");   // 按 id 取一个
+await store.account("<uuid>");   // 按 id 取一个（同一 id 可能出现在多个 app_type，取排序后的第一个）
+await store.accountOf("claude-desktop", "<uuid>");  // 按 (app_type, id) 取，唯一
 ```
+
+账号身份是 `(appType, accountId)` 这一对，而不是裸 id：CC Switch 会把同一个
+provider 行同时镜像到 `claude` 和 `claude-desktop` 两个 `app_type`（**UUID
+完全相同**，`providers` 表主键是 `(id, app_type)`）。所以内部路由是
+`cc-switch-account/<appType>:<accountId>`，`Account` 上也带 `accountKey`；选择器里
+展示的 model id 仍是 `<account-uuid>::<wire model id>`，老会话/默认模型配置照常
+解析。
 
 新增一种账号源只要写一个 `AccountStore` 子类，然后调用：
 
